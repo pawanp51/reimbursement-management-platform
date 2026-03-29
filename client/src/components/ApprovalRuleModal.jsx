@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Check, Plus } from 'lucide-react';
+import { X, Check, Plus, Loader2 } from 'lucide-react';
 import CreateUserModal from './CreateUserModal';
-import { authAPI } from '../services/api';
+import { authAPI, approvalAPI } from '../services/api';
 
 export default function ApprovalRuleModal({ isOpen, onClose }) {
+  const [allUserObjects, setAllUserObjects] = useState([]);
   const [allUsers, setAllUsers] = useState([]); // List of strings used for autocomplete and missing check
   const [dbManagers, setDbManagers] = useState([]); // List of strings for valid managers
   
@@ -26,6 +27,8 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
           const res = await authAPI.getUsers();
           if (res.data) {
             const users = res.data;
+            setAllUserObjects(users);
+            
             // Get all names
             const names = users.map(u => (u.firstName + ' ' + (u.lastName || '')).trim());
             setAllUsers(names);
@@ -45,6 +48,8 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
       fetchUsers();
     }
   }, [isOpen]);
+
+  const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -71,6 +76,48 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
     const nameLower = newUser.user.toLowerCase();
     if (!allUsers.includes(nameLower)) {
       setAllUsers([...allUsers, nameLower]);
+    }
+  };
+
+  const handleSaveRule = async () => {
+    try {
+      if (!formData.user || !formData.ruleDescription) {
+        return alert("Please enter a User and a Description.");
+      }
+
+      setSubmitting(true);
+      
+      // Look up target User ID
+      const targetUser = allUserObjects.find(u => (u.firstName + ' ' + (u.lastName || '')).trim() === formData.user);
+      if (!targetUser) {
+        return alert("Invalid target User selected. Must select an existing user.");
+      }
+
+      // Map approver names to IDs
+      const mappedApprovers = approvers.map(a => {
+        const u = allUserObjects.find(user => (user.firstName + ' ' + (user.lastName || '')).trim() === a.name);
+        return u ? u.id : null;
+      }).filter(id => id);
+
+      if (mappedApprovers.length === 0 && !formData.isManagerApprover) {
+        return alert("Please add at least one valid approver or check the manager approver option.");
+      }
+
+      const payload = {
+        userId: targetUser.id,
+        description: formData.ruleDescription,
+        isManagerApprover: formData.isManagerApprover,
+        approversList: mappedApprovers,
+        isApproversSequence: formData.sequenceMatters,
+        minimalApprovalPercentage: parseInt(formData.minPercentage) || 0
+      };
+
+      await approvalAPI.createRule(payload);
+      onClose();
+    } catch (err) {
+      alert(err.message || "Failed to create approval rule");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -304,12 +351,17 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
           <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-4 rounded-b-2xl">
             <button 
               onClick={onClose}
-              className="px-6 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-200 transition-colors"
+              disabled={submitting}
+              className="px-6 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
-            <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-md shadow-blue-500/20 transition-all">
-              Save Rule
+            <button 
+              onClick={handleSaveRule}
+              disabled={submitting}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-md shadow-blue-500/20 transition-all flex items-center justify-center min-w-[120px]"
+            >
+              {submitting ? <Loader2 size={16} className="animate-spin" /> : 'Save Rule'}
             </button>
           </div>
         </div>

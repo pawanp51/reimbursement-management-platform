@@ -35,3 +35,9 @@ export const authAPI = {
   getUsers: () => fetchAPI('/api/users', { method: 'GET' }),
   addUser: (userData) => fetchAPI('/api/users/add-user', { method: 'POST', body: JSON.stringify(userData) }),
 };
+
+export const approvalAPI = {
+  createRule: (data) => fetchAPI('/api/approval-rules', { method: 'POST', body: JSON.stringify(data) }),
+  getAllRules: () => fetchAPI('/api/approval-rules', { method: 'GET' }),
+  deleteRule: (id) => fetchAPI(`/api/approval-rules/${id}`, { method: 'DELETE' }),
+};
