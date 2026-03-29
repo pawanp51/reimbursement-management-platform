@@ -311,7 +311,7 @@ const getCurrentUser = async (req, res) => {
 // ==================== ADD USER (ADMIN ONLY) ====================
 const addUser = async (req, res) => {
   try {
-    let { email, name, role, managerId, password } = req.body;
+    let { email, name, role, managerId, password, country } = req.body;
 
     // Normalize email
     email = email?.trim().toLowerCase();
@@ -371,6 +371,7 @@ const addUser = async (req, res) => {
         firstName,
         lastName,
         role,
+        country: country || null,
         managerId: managerId || null,
       },
     });
@@ -437,6 +438,26 @@ const sendPasswordToEmail = async (req, res) => {
   }
 };
 
+// ==================== GET ALL USERS ====================
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+      }
+    });
+    
+    sendResponse(res, STATUS_CODES.SUCCESS, users, 'Users retrieved successfully');
+  } catch (error) {
+    console.error('Get all users error:', error);
+    sendError(res, STATUS_CODES.SERVER_ERROR, error.message);
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -446,4 +467,5 @@ module.exports = {
   getCurrentUser,
   addUser,
   sendPasswordToEmail,
+  getAllUsers,
 };

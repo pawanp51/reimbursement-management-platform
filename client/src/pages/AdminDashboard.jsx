@@ -1,10 +1,38 @@
-import React, { useState } from 'react';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit2, Trash2, Loader2 } from 'lucide-react';
 import ApprovalRuleModal from '../components/ApprovalRuleModal';
+import { approvalAPI } from '../services/api';
 
 export default function AdminDashboard() {
-  const [rules, setRules] = useState([]); // Empty state instead of mockRules
+  const [rules, setRules] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const fetchRules = async () => {
+    try {
+      setLoading(true);
+      const res = await approvalAPI.getAllRules();
+      if (res.data?.approvalRules) {
+        // Map database rules to UI table structure
+        const mappedRules = res.data.approvalRules.map(rule => ({
+          id: rule.id,
+          user: `${rule.user.firstName} ${rule.user.lastName || ''}`.trim(),
+          rule: rule.description,
+          manager: rule.isManagerApprover ? 'Auto-routed (Manager First)' : 'Not routed to manager',
+          minPercentage: rule.minimalApprovalPercentage,
+        }));
+        setRules(mappedRules);
+      }
+    } catch (err) {
+      console.error("Error fetching rules:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchRules();
+  }, []);
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
@@ -52,10 +80,17 @@ export default function AdminDashboard() {
                   </td>
                 </tr>
               ))}
-              {rules.length === 0 && (
+              {rules.length === 0 && !loading && (
                 <tr>
                   <td colSpan="5" className="py-8 text-center text-gray-500">
                     No approval rules found. Click the button above to create one.
+                  </td>
+                </tr>
+              )}
+              {loading && (
+                <tr>
+                  <td colSpan="5" className="py-8 text-center text-gray-500">
+                    <Loader2 size={24} className="animate-spin mx-auto text-blue-500" />
                   </td>
                 </tr>
               )}
@@ -66,7 +101,10 @@ export default function AdminDashboard() {
 
       <ApprovalRuleModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          setIsModalOpen(false);
+          fetchRules();
+        }}
       />
     </div>
   );

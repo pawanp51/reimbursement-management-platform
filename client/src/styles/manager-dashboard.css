@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+:root {
+  --bg-gradient-a: #e6f4ff;
+  --bg-gradient-b: #eefee9;
+  --bg-gradient-c: #fff2da;
+}
+
+body {
+  font-family: 'Manrope', 'Segoe UI', sans-serif;
+}
+
+.manager-dashboard-bg {
+  background:
+    radial-gradient(circle at 15% 20%, color-mix(in srgb, var(--bg-gradient-a) 74%, transparent), transparent 46%),
+    radial-gradient(circle at 80% 30%, color-mix(in srgb, var(--bg-gradient-b) 70%, transparent), transparent 45%),
+    radial-gradient(circle at 20% 85%, color-mix(in srgb, var(--bg-gradient-c) 70%, transparent), transparent 42%);
+  background-color: var(--mantine-color-body);
+  background-size: 140% 140%;
+  animation: ambient-pan 18s ease-in-out infinite alternate;
+}
+
+.glass-panel {
+  backdrop-filter: blur(11px);
+  -webkit-backdrop-filter: blur(11px);
+  border: 1px solid light-dark(rgba(255, 255, 255, 0.65), rgba(255, 255, 255, 0.12));
+  background: light-dark(rgba(255, 255, 255, 0.72), rgba(28, 30, 36, 0.62));
+  box-shadow:
+    0 12px 30px light-dark(rgba(31, 45, 61, 0.12), rgba(0, 0, 0, 0.26)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.36);
+}
+
+@keyframes ambient-pan {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (max-width: 48em) {
+  .glass-panel {
+    padding: 1rem;
+  }
+}

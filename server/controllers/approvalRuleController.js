@@ -180,6 +180,38 @@ const getUserApprovalRules = async (req, res) => {
   }
 };
 
+// ==================== GET ALL APPROVAL RULES ====================
+const getAllApprovalRules = async (req, res) => {
+  try {
+    const requesterRole = req.user.role;
+    if (requesterRole !== 'ADMIN') {
+      return sendError(res, STATUS_CODES.FORBIDDEN, 'Only ADMIN can view all approval rules');
+    }
+
+    const rules = await prisma.approvalRule.findMany({
+      include: {
+        user: {
+          select: { id: true, firstName: true, lastName: true, email: true }
+        },
+        approvers: {
+          include: {
+            approver: {
+              select: { id: true, firstName: true, lastName: true, email: true, role: true }
+            }
+          },
+          orderBy: { sequenceOrder: 'asc' }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    sendResponse(res, STATUS_CODES.SUCCESS, { approvalRules: rules }, 'All approval rules fetched');
+  } catch (error) {
+    console.error('Get all approval rules error:', error);
+    sendError(res, STATUS_CODES.SERVER_ERROR, error.message);
+  }
+};
+
 // ==================== UPDATE APPROVAL RULE ====================
 const updateApprovalRule = async (req, res) => {
   try {
@@ -330,6 +362,7 @@ const deleteApprovalRule = async (req, res) => {
 module.exports = {
   createApprovalRule,
   getUserApprovalRules,
+  getAllApprovalRules,
   updateApprovalRule,
   deleteApprovalRule,
 };

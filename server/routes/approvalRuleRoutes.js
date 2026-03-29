@@ -3,6 +3,7 @@ const express = require('express');
 const {
   createApprovalRule,
   getUserApprovalRules,
+  getAllApprovalRules,
   updateApprovalRule,
   deleteApprovalRule,
 } = require('../controllers/approvalRuleController');
@@ -15,6 +16,9 @@ router.use(authMiddleware);
 
 // Create approval rule - ADMIN only
 router.post('/', authorize('ADMIN'), createApprovalRule);
+
+// Get all approval rules - ADMIN only
+router.get('/', authorize('ADMIN'), getAllApprovalRules);
 
 // Get user approval rules
 router.get('/user/:userId', getUserApprovalRules);

@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
-import { X, Check, Plus } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Check, Plus, Loader2 } from 'lucide-react';
 import CreateUserModal from './CreateUserModal';
+import { authAPI, approvalAPI } from '../services/api';
 
 export default function ApprovalRuleModal({ isOpen, onClose }) {
-  const [allUsers, setAllUsers] = useState(['sarah', 'david', 'john', 'employee']); // Mock DB of users
+  const [allUserObjects, setAllUserObjects] = useState([]);
+  const [allUsers, setAllUsers] = useState([]); // List of strings used for autocomplete and missing check
+  const [dbManagers, setDbManagers] = useState([]); // List of strings for valid managers
   
   const [approvers, setApprovers] = useState([]); // Start empty
   const [formData, setFormData] = useState({
@@ -16,6 +19,37 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
   });
 
   const [createUserContext, setCreateUserContext] = useState(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      const fetchUsers = async () => {
+        try {
+          const res = await authAPI.getUsers();
+          if (res.data) {
+            const users = res.data;
+            setAllUserObjects(users);
+            
+            // Get all names
+            const names = users.map(u => (u.firstName + ' ' + (u.lastName || '')).trim());
+            setAllUsers(names);
+            
+            // Filter managers
+            const managerRoles = ['MANAGER', 'DIRECTOR', 'CFO', 'CTO', 'ADMIN'];
+            const mgrs = users
+              .filter(u => managerRoles.includes(u.role))
+              .map(u => (u.firstName + ' ' + (u.lastName || '')).trim());
+            setDbManagers(mgrs);
+          }
+        } catch (err) {
+          console.error("Failed to fetch users:", err);
+        }
+      };
+      
+      fetchUsers();
+    }
+  }, [isOpen]);
+
+  const [submitting, setSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -42,6 +76,48 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
     const nameLower = newUser.user.toLowerCase();
     if (!allUsers.includes(nameLower)) {
       setAllUsers([...allUsers, nameLower]);
+    }
+  };
+
+  const handleSaveRule = async () => {
+    try {
+      if (!formData.user || !formData.ruleDescription) {
+        return alert("Please enter a User and a Description.");
+      }
+
+      setSubmitting(true);
+      
+      // Look up target User ID
+      const targetUser = allUserObjects.find(u => (u.firstName + ' ' + (u.lastName || '')).trim() === formData.user);
+      if (!targetUser) {
+        return alert("Invalid target User selected. Must select an existing user.");
+      }
+
+      // Map approver names to IDs
+      const mappedApprovers = approvers.map(a => {
+        const u = allUserObjects.find(user => (user.firstName + ' ' + (user.lastName || '')).trim() === a.name);
+        return u ? u.id : null;
+      }).filter(id => id);
+
+      if (mappedApprovers.length === 0 && !formData.isManagerApprover) {
+        return alert("Please add at least one valid approver or check the manager approver option.");
+      }
+
+      const payload = {
+        userId: targetUser.id,
+        description: formData.ruleDescription,
+        isManagerApprover: formData.isManagerApprover,
+        approversList: mappedApprovers,
+        isApproversSequence: formData.sequenceMatters,
+        minimalApprovalPercentage: parseInt(formData.minPercentage) || 0
+      };
+
+      await approvalAPI.createRule(payload);
+      onClose();
+    } catch (err) {
+      alert(err.message || "Failed to create approval rule");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -78,12 +154,16 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
                   <label className="block text-sm text-gray-500 mb-2 font-medium">User</label>
                   <div className="flex items-center gap-3">
                     <input
+                      list="all-users-list"
                       type="text"
                       value={formData.user}
                       onChange={(e) => setFormData({ ...formData, user: e.target.value })}
                       className="w-full bg-transparent border-b-2 border-gray-300 pb-2 text-gray-900 focus:outline-none focus:border-blue-600 transition-colors"
                       placeholder="Enter user name"
                     />
+                    <datalist id="all-users-list">
+                      {allUsers.map((u, i) => <option key={i} value={u} />)}
+                    </datalist>
                     {isUserMissing(formData.user) && (
                       <button 
                         onClick={() => setCreateUserContext({ type: 'main', name: formData.user })}
@@ -116,7 +196,7 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
                       className="w-full bg-transparent border-b-2 border-gray-300 pb-2 text-gray-900 focus:outline-none focus:border-blue-600 appearance-none transition-colors"
                     >
                       <option value="">-- Select --</option>
-                      {allUsers.map((u) => (
+                      {dbManagers.map((u) => (
                         <option key={u} value={u}>{u}</option>
                       ))}
                     </select>
@@ -177,6 +257,7 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
                         
                         <div className="flex-1 flex items-center gap-2">
                           <input 
+                            list={`approver-list-${approver.id}`}
                             type="text"
                             value={approver.name}
                             onChange={(e) => {
@@ -187,6 +268,9 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
                             placeholder="Enter Username"
                             className="w-full bg-transparent text-gray-900 focus:outline-none appearance-none"
                           />
+                          <datalist id={`approver-list-${approver.id}`}>
+                            {allUsers.map((u, i) => <option key={`app-${i}`} value={u} />)}
+                          </datalist>
                           {isUserMissing(approver.name) && (
                             <button 
                               onClick={() => setCreateUserContext({ type: 'approver', id: approver.id, name: approver.name })}
@@ -267,12 +351,17 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
           <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-end gap-4 rounded-b-2xl">
             <button 
               onClick={onClose}
-              className="px-6 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-200 transition-colors"
+              disabled={submitting}
+              className="px-6 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
-            <button className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-md shadow-blue-500/20 transition-all">
-              Save Rule
+            <button 
+              onClick={handleSaveRule}
+              disabled={submitting}
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium shadow-md shadow-blue-500/20 transition-all flex items-center justify-center min-w-[120px]"
+            >
+              {submitting ? <Loader2 size={16} className="animate-spin" /> : 'Save Rule'}
             </button>
           </div>
         </div>
@@ -287,6 +376,7 @@ export default function ApprovalRuleModal({ isOpen, onClose }) {
           handleCreateUserFromModal(newUser);
         }}
         allUsers={allUsers}
+        dbManagers={dbManagers}
       />
     </>
   );

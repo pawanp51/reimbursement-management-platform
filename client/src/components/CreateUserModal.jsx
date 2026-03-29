@@ -1,9 +1,17 @@
 import React, { useState } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { authAPI } from '../services/api';
 
 const ROLES = ['Manager', 'Director', 'CFO', 'Employee'];
+const COUNTRIES = [
+  { code: 'US', name: 'United States' },
+  { code: 'UK', name: 'United Kingdom' },
+  { code: 'IN', name: 'India' },
+  { code: 'EU', name: 'Europe' },
+  { code: 'AU', name: 'Australia' }
+];
 
-export default function CreateUserModal({ isOpen, onClose, defaultName = '', onUserCreated, allUsers = [] }) {
+export default function CreateUserModal({ isOpen, onClose, defaultName = '', onUserCreated, allUsers = [], dbManagers = [] }) {
   const [nestedCreateUser, setNestedCreateUser] = useState(null);
   
   const [newUser, setNewUser] = useState({
@@ -12,16 +20,36 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
     manager: '',
     email: '',
     password: '',
+    country: 'US',
   });
+  const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSendPassword = () => {
-    if (newUser.user && newUser.email) {
-      onUserCreated(newUser);
-      onClose();
+  const handleSendPassword = async () => {
+    if (newUser.user && newUser.role && newUser.email && newUser.password) {
+      try {
+        setLoading(true);
+        const res = await authAPI.addUser({
+          name: newUser.user,
+          email: newUser.email,
+          role: newUser.role.toUpperCase(),
+          password: newUser.password,
+          country: newUser.country,
+          // Manager intentionally omitted since it requires an ID on the backend
+        });
+
+        if (res.data?.user) {
+          onUserCreated({ ...newUser, ...res.data.user });
+          onClose();
+        }
+      } catch (error) {
+        alert("Error creating user: " + error.message);
+      } finally {
+        setLoading(false);
+      }
     } else {
-      alert("Please provide User and Email");
+      alert("Please fill in all mandatory fields (User, Role, Email, Password)");
     }
   };
 
@@ -68,11 +96,12 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">User</th>
-                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Role</th>
+                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">User<span className="text-red-500 ml-1">*</span></th>
+                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Role<span className="text-red-500 ml-1">*</span></th>
                 <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Manager</th>
-                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Email</th>
-                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Password</th>
+                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Email<span className="text-red-500 ml-1">*</span></th>
+                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Password<span className="text-red-500 ml-1">*</span></th>
+                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Country</th>
                 <th className="p-4 font-semibold text-gray-700 text-lg text-center"></th>
               </tr>
             </thead>
@@ -99,23 +128,16 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
                     </select>
                 </td>
                 <td className="p-4 border-r border-gray-200 bg-white">
-                     <div className="flex flex-col gap-2 items-center">
-                        <input
-                            type="text"
-                            value={newUser.manager}
-                            onChange={(e) => setNewUser({...newUser, manager: e.target.value})}
-                            className="bg-transparent text-gray-900 w-full outline-none focus:ring-0 text-center placeholder-gray-400"
-                            placeholder="Manager name"
-                        />
-                        {isUserMissing(newUser.manager) && (
-                          <button 
-                            onClick={() => setNestedCreateUser({ name: newUser.manager })}
-                            className="px-2 py-1 text-[10px] bg-blue-50 text-blue-600 border border-blue-200 rounded whitespace-nowrap hover:bg-blue-100 transition-colors"
-                          >
-                            Create User
-                          </button>
-                        )}
-                     </div>
+                    <select
+                        value={newUser.manager}
+                        onChange={(e) => setNewUser({...newUser, manager: e.target.value})}
+                        className="bg-transparent text-gray-900 w-full outline-none focus:ring-0 text-center appearance-none"
+                    >
+                        <option value="" className="text-gray-400">Select Manager</option>
+                        {dbManagers.map(mgr => (
+                            <option key={mgr} value={mgr} className="text-left">{mgr}</option>
+                        ))}
+                    </select>
                 </td>
                 <td className="p-4 border-r border-gray-200 bg-white">
                     <input 
@@ -144,12 +166,23 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
                         </button>
                     </div>
                 </td>
-                <td className="p-4 flex justify-center bg-white">
-                    <button 
-                        onClick={handleSendPassword}
-                        className="border border-gray-300 bg-white rounded-lg px-4 py-1.5 text-gray-700 font-medium hover:bg-gray-50 hover:text-blue-600 hover:border-blue-300 transition-colors shadow-sm"
+                <td className="p-4 border-r border-gray-200 bg-white">
+                    <select
+                        value={newUser.country}
+                        onChange={(e) => setNewUser({...newUser, country: e.target.value})}
+                        className="bg-transparent text-gray-900 w-full outline-none focus:ring-0 text-center appearance-none"
                     >
-                        Send password
+                        {COUNTRIES.map(c => (
+                            <option key={c.code} value={c.code} className="text-left">{c.name}</option>
+                        ))}
+                    </select>
+                </td>
+                <td className="p-4 flex justify-center bg-white cursor-pointer hover:bg-gray-50 active:bg-gray-100 transition-colors" onClick={handleSendPassword}>
+                    <button 
+                        disabled={loading}
+                        className="border border-gray-300 bg-white rounded-lg px-4 py-1.5 text-gray-700 font-medium disabled:opacity-50 pointer-events-none shadow-sm"
+                    >
+                        {loading ? 'Sending...' : 'Send password'}
                     </button>
                 </td>
               </tr>
