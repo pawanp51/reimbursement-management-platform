@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const prisma = require('../config/prisma');
 const { sendResponse, sendError } = require('../utils/responses');
 const { STATUS_CODES } = require('../config/constants');
-const { sendOTPEmail } = require('../utils/mailer');
+const { sendOTPEmail, sendPasswordEmail } = require('../utils/mailer');
 const { generateOTP } = require('../utils/otpGenerator');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret_key';
@@ -306,6 +306,135 @@ const getCurrentUser = async (req, res) => {
   }
 };
 
+// ==================== ADD USER (ADMIN ONLY) ====================
+const addUser = async (req, res) => {
+  try {
+    let { email, name, role, managerId, password } = req.body;
+
+    // Normalize email
+    email = email?.trim().toLowerCase();
+
+    // Validate input
+    if (!email || !name || !role) {
+      return sendError(res, STATUS_CODES.BAD_REQUEST, 'Email, name, and role are required');
+    }
+
+    // Validate role
+    const validRoles = ['EMPLOYEE', 'MANAGER', 'CTO', 'DIRECTOR', 'ADMIN'];
+    if (!validRoles.includes(role)) {
+      return sendError(res, STATUS_CODES.BAD_REQUEST, 'Invalid role. Valid roles: EMPLOYEE, MANAGER, CTO, DIRECTOR, ADMIN');
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      return sendError(res, STATUS_CODES.BAD_REQUEST, 'Email already registered');
+    }
+
+    // If managerId is provided, validate that manager exists
+    if (managerId) {
+      const manager = await prisma.user.findUnique({
+        where: { id: managerId },
+      });
+
+      if (!manager) {
+        return sendError(res, STATUS_CODES.NOT_FOUND, 'Manager not found');
+      }
+    }
+
+    // Generate password if not provided
+    const finalPassword = password || Math.random().toString(36).slice(-10);
+
+    // Validate password strength
+    if (finalPassword.length < 6) {
+      return sendError(res, STATUS_CODES.BAD_REQUEST, 'Password must be at least 6 characters');
+    }
+
+    // Hash password
+    const hashedPassword = await bcryptjs.hash(finalPassword, 10);
+
+    // Split name into firstName and lastName
+    const nameParts = name.trim().split(' ');
+    const firstName = nameParts[0];
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    // Create user
+    const newUser = await prisma.user.create({
+      data: {
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+        role,
+        managerId: managerId || null,
+      },
+    });
+
+    // Send password email
+    await sendPasswordEmail(email, firstName, finalPassword);
+
+    sendResponse(res, STATUS_CODES.CREATED, {
+      user: {
+        id: newUser.id,
+        email: newUser.email,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
+        role: newUser.role,
+        managerId: newUser.managerId,
+      },
+    }, 'User created successfully and password sent to email');
+
+  } catch (error) {
+    console.error('Add user error:', error);
+    sendError(res, STATUS_CODES.SERVER_ERROR, error.message);
+  }
+};
+
+// ==================== SEND PASSWORD EMAIL ====================
+const sendPasswordToEmail = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    if (!userId) {
+      return sendError(res, STATUS_CODES.BAD_REQUEST, 'User ID is required');
+    }
+
+    // Find user
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      return sendError(res, STATUS_CODES.NOT_FOUND, 'User not found');
+    }
+
+    // Generate a temporary password
+    const tempPassword = Math.random().toString(36).slice(-10);
+
+    // Hash and update password
+    const hashedPassword = await bcryptjs.hash(tempPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    // Send password email
+    await sendPasswordEmail(user.email, user.firstName, tempPassword);
+
+    sendResponse(res, STATUS_CODES.SUCCESS, {
+      message: 'Password sent to ' + user.email,
+    }, 'Password sent successfully');
+
+  } catch (error) {
+    console.error('Send password error:', error);
+    sendError(res, STATUS_CODES.SERVER_ERROR, error.message);
+  }
+};
+
 module.exports = {
   signup,
   login,
@@ -313,4 +442,6 @@ module.exports = {
   verifyOTP,
   resetPassword,
   getCurrentUser,
+  addUser,
+  sendPasswordToEmail,
 };
