@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { RefreshCw } from 'lucide-react';
 
 const ROLES = ['Manager', 'Director', 'CFO', 'Employee'];
 
@@ -10,6 +11,7 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
     role: 'Employee',
     manager: '',
     email: '',
+    password: '',
   });
 
   if (!isOpen) return null;
@@ -25,6 +27,15 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
 
   const isUserMissing = (username) => {
     return username.trim() !== '' && !allUsers.includes(username.toLowerCase());
+  };
+
+  const generateRandomPassword = () => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
+    let pwd = "";
+    for (let i = 0; i < 12; i++) {
+        pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewUser({ ...newUser, password: pwd });
   };
 
   const handleNestedUserCreated = (createdUser) => {
@@ -61,6 +72,7 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
                 <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Role</th>
                 <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Manager</th>
                 <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Email</th>
+                <th className="p-4 font-semibold text-gray-700 text-lg border-r border-gray-200 text-center">Password</th>
                 <th className="p-4 font-semibold text-gray-700 text-lg text-center"></th>
               </tr>
             </thead>
@@ -113,6 +125,24 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
                         className="bg-transparent text-gray-900 w-full outline-none focus:ring-0 text-center placeholder-gray-400"
                         placeholder="Email"
                     />
+                </td>
+                <td className="p-4 border-r border-gray-200 bg-white">
+                    <div className="flex items-center gap-2 justify-center">
+                        <input 
+                            type="text" 
+                            value={newUser.password}
+                            onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+                            className="bg-transparent text-gray-900 w-24 outline-none focus:ring-0 text-center placeholder-gray-400"
+                            placeholder="Password"
+                        />
+                        <button 
+                            onClick={generateRandomPassword}
+                            className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                            title="Generate Random Password"
+                        >
+                            <RefreshCw size={16} />
+                        </button>
+                    </div>
                 </td>
                 <td className="p-4 flex justify-center bg-white">
                     <button 
