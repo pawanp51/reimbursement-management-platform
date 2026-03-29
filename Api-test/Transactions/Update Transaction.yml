@@ -1,0 +1,33 @@
+info:
+  name: Update Transaction
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: http://localhost:3000/api/transactions/TRANSACTION_ID_HERE
+  headers:
+    Authorization: Bearer YOUR_USER_TOKEN_HERE
+  body:
+    type: json
+    data: |-
+      {
+        "description": "Updated office supplies purchase",
+        "totalAmount": 300.00,
+        "remarks": "Updated amount and details"
+      }
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 200
+    assert: $res.status == 200
+  - name: Transaction updated
+    assert: $res.body.data.transaction.description == "Updated office supplies purchase"
+  - name: Status still DRAFT
+    assert: $res.body.data.transaction.status == "DRAFT"

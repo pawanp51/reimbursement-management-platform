@@ -1,0 +1,27 @@
+info:
+  name: Get Approval History
+  type: http
+  seq: 9
+
+http:
+  method: GET
+  url: http://localhost:3000/api/transactions/TRANSACTION_ID_HERE/approvals/history
+  headers:
+    Authorization: Bearer YOUR_TOKEN_HERE
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 200
+    assert: $res.status == 200
+  - name: Response has approvalHistory
+    assert: Array.isArray($res.body.data.approvalHistory)
+  - name: Response has transactionStatus
+    assert: $res.body.data.transactionStatus != null
+  - name: Approvals have timestamps
+    assert: $res.body.data.approvalHistory.every(a => a.approvalDate != null || a.status == "PENDING")

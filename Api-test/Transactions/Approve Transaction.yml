@@ -1,0 +1,31 @@
+info:
+  name: Approve Transaction
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: http://localhost:3000/api/transactions/TRANSACTION_ID_HERE/approve
+  headers:
+    Authorization: Bearer YOUR_APPROVER_TOKEN_HERE
+  body:
+    type: json
+    data: |-
+      {
+        "comments": "Approved. Seems reasonable expense for the team."
+      }
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 200
+    assert: $res.status == 200
+  - name: Response has transaction
+    assert: $res.body.data.transaction != null
+  - name: Approvals updated
+    assert: $res.body.data.transaction.approvals.some(a => a.status == "APPROVED")

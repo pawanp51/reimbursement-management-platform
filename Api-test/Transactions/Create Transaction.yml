@@ -1,0 +1,37 @@
+info:
+  name: Create Transaction
+  type: http
+  seq: 1
+
+http:
+  method: POST
+  url: http://localhost:3000/api/transactions
+  headers:
+    Authorization: Bearer YOUR_USER_TOKEN_HERE
+  body:
+    type: json
+    data: |-
+      {
+        "description": "Office supplies purchase",
+        "expenseDate": "2026-03-29",
+        "category": "Office",
+        "paidBy": "Employee",
+        "currency": "USD",
+        "totalAmount": 250.50,
+        "remarks": "Monthly office supplies from supplier"
+      }
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 201
+    assert: $res.status == 201
+  - name: Transaction has DRAFT status
+    assert: $res.body.data.transaction.status == "DRAFT"
+  - name: Amount matches
+    assert: $res.body.data.transaction.totalAmount == 250.50

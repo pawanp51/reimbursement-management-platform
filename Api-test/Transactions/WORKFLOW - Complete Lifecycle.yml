@@ -1,0 +1,91 @@
+info:
+  name: WORKFLOW - Complete Transaction Lifecycle
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: http://localhost:3000/api/transactions
+  headers:
+    Authorization: Bearer USER_TOKEN
+  body:
+    type: json
+    data: |-
+      {
+        "description": "Travel expenses - Conference attendance",
+        "expenseDate": "2026-03-25",
+        "category": "Travel",
+        "paidBy": "Employee",
+        "currency": "USD",
+        "totalAmount": 1500.00,
+        "remarks": "International conference ticket and accommodation"
+      }
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+vars:
+  transactionId: ""
+
+tests:
+  - name: Step 1 - Create Transaction in DRAFT status
+    assert: $res.status == 201 && $res.body.data.transaction.status == "DRAFT"
+  - name: Extract transaction ID
+    assert: $res.body.data.transaction.id != null
+
+docs: |-
+  # Complete Transaction Workflow
+  
+  ## Steps to Test:
+  
+  1. **Create Transaction (DRAFT)** - User creates a transaction (this request)
+     - Response contains transaction in DRAFT status
+     - Extract the transaction ID
+  
+  2. **Submit for Approval** - User submits the transaction
+     ```
+     POST /api/transactions/{transactionId}/submit
+     ```
+     - Status changes to WAITING_APPROVAL
+     - Approval records created based on approval rules
+     - Approvals visible to assigned approvers
+  
+  3. **Get Pending Approvals** - Approvers check pending requests
+     ```
+     GET /api/transactions/approvals/pending
+     ```
+     - Returns only PENDING approvals for the approver
+     - Respects sequential approval order if configured
+  
+  4. **Approve or Reject** - Approver makes decision
+     ```
+     POST /api/transactions/{transactionId}/approve
+     {
+       "comments": "Looks good. Approved for reimbursement."
+     }
+     ```
+     or
+     ```
+     POST /api/transactions/{transactionId}/reject
+     {
+       "comments": "Amount exceeds limit. Requires CFO approval."
+     }
+     ```
+  
+  5. **View History** - Check approval journey
+     ```
+     GET /api/transactions/{transactionId}/approvals/history
+     ```
+     - Shows all approvals with timestamps
+     - Shows comments from each approver
+  
+  ## Approval Rules Impact:
+  
+  - **isManagerApprover**: Manager must approve first if true
+  - **isApproversSequence**: Approvers must approve in defined order
+  - **minimalApprovalPercentage**: Transaction auto-approves when threshold met
+  - **CTO Role**: Auto-approves entire transaction if CTO approves

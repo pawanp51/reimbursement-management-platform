@@ -28,6 +28,10 @@ model User {
   approvalRules   ApprovalRule[]
   approverInRules ApprovalRuleApprover[]
 
+  // Transactions
+  transactions         Transaction[]
+  transactionApprovals TransactionApproval[]
+
   // Relations
   otps OTP[]
 
@@ -92,6 +96,84 @@ model ApprovalRuleApprover {
   @@index([approverId])
 }
 
+// Transaction/Reimbursement Request model
+model Transaction {
+  id          String            @id @default(cuid())
+  description String
+  expenseDate DateTime
+  category    String
+  paidBy      String // Employee, Corporate Card, etc.
+  currency    String            @default("USD")
+  totalAmount Float
+  remarks     String?
+  status      TransactionStatus @default(DRAFT)
+
+  // Approval fields (populated after approval)
+  approvedBy   String?
+  approvalDate DateTime?
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Attachments
+  attachments Attachment[]
+
+  // Approvals tracking
+  approvals TransactionApproval[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+}
+
+// Attachment model for storing file metadata
+model Attachment {
+  id       String @id @default(cuid())
+  fileName String
+  filePath String // Local file path
+  fileType String // MIME type
+  fileSize Int // Size in bytes
+
+  // OCR extracted fields
+  ocrData Json? // Extracted text/data from OCR
+
+  // Relations
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([transactionId])
+}
+
+// Transaction Approval tracking model
+model TransactionApproval {
+  id           String         @id @default(cuid())
+  status       ApprovalStatus @default(PENDING)
+  approvalDate DateTime?
+  comments     String?
+  sequenceOrder Int?           // Order if isApproversSequence is true
+
+  // Relations
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+
+  approverId String
+  approver   User   @relation(fields: [approverId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([transactionId, approverId])
+  @@index([transactionId])
+  @@index([approverId])
+  @@index([status])
+}
+
 // Enums
 enum Role {
   EMPLOYEE
@@ -99,6 +181,15 @@ enum Role {
   CTO
   DIRECTOR
   ADMIN
+}
+
+enum TransactionStatus {
+  DRAFT
+  WAITING_APPROVAL
+  APPROVED
+  REJECTED
+  PAID
+  CANCELLED
 }
 
 enum ReimbursementStatus {

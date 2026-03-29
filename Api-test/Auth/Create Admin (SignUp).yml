@@ -13,7 +13,8 @@ http:
         "email":"pawanrp51@gmail.com",
         "password":"Test@123",
         "firstName":"Porn",
-        "lastName":"Hub"
+        "lastName":"Hub",
+        "country":"India"
       }
   auth: inherit
 
