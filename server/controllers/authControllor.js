@@ -13,7 +13,7 @@ const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d';
 // ==================== SIGNUP ====================
 const signup = async (req, res) => {
   try {
-    let { email, password, firstName, lastName } = req.body;
+    let { email, password, firstName, lastName, country } = req.body;
 
     // Normalize email
     email = email?.trim().toLowerCase();
@@ -47,6 +47,7 @@ const signup = async (req, res) => {
         password: hashedPassword,
         firstName: firstName || '',
         lastName: lastName || '',
+        country: country || '',
         role: 'ADMIN', // All signups are ADMIN
       },
     });
@@ -65,6 +66,7 @@ const signup = async (req, res) => {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        country: user.country,
         role: user.role,
       },
     }, 'Signup successful');

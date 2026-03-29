@@ -18,7 +18,7 @@ model User {
   firstName String?
   lastName  String?
   role      Role    @default(EMPLOYEE)
-
+  country   String?
   // Manager-Employee relationship (self-relation)
   managerId String? // Foreign key to manager
   manager   User?   @relation("ManagerToEmployee", fields: [managerId], references: [id], onDelete: SetNull)
