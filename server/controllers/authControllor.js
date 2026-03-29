@@ -311,7 +311,7 @@ const getCurrentUser = async (req, res) => {
 // ==================== ADD USER (ADMIN ONLY) ====================
 const addUser = async (req, res) => {
   try {
-    let { email, name, role, managerId, password } = req.body;
+    let { email, name, role, managerId, password, country } = req.body;
 
     // Normalize email
     email = email?.trim().toLowerCase();
@@ -371,6 +371,7 @@ const addUser = async (req, res) => {
         firstName,
         lastName,
         role,
+        country: country || null,
         managerId: managerId || null,
       },
     });
