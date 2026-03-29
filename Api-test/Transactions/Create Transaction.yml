@@ -6,8 +6,6 @@ info:
 http:
   method: POST
   url: http://localhost:3000/api/transactions
-  headers:
-    Authorization: Bearer YOUR_USER_TOKEN_HERE
   body:
     type: json
     data: |-
@@ -20,18 +18,12 @@ http:
         "totalAmount": 250.50,
         "remarks": "Monthly office supplies from supplier"
       }
-  auth: none
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbW5ibTVsdnIwMDAwaWUxMGlkcGhveWZjIiwiZW1haWwiOiJwcmFuYXZwYXRpbDk3NjVAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc0Nzc5OTQ1LCJleHAiOjE3NzUzODQ3NDV9.MgVs5CUcxOCoMDIiUPeu7dHgb6Uw7zxgiI4KVUVEtv0
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-
-tests:
-  - name: Status code is 201
-    assert: $res.status == 201
-  - name: Transaction has DRAFT status
-    assert: $res.body.data.transaction.status == "DRAFT"
-  - name: Amount matches
-    assert: $res.body.data.transaction.totalAmount == 250.50

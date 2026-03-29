@@ -13,6 +13,7 @@ const {
   getPendingApprovalsForApprover,
   getApprovalHistory,
   getAllTransactions,
+  getUserTransactionHistory,
 } = require('../controllers/transactionController');
 const {
   uploadAttachment,
@@ -62,6 +63,9 @@ router.post('/', createTransaction);
 
 // Get all user transactions
 router.get('/', getUserTransactions);
+
+// Get user transaction history (all transactions they created, submitted, or approved)
+router.get('/history/all', getUserTransactionHistory);
 
 // Get all transactions (ADMIN ONLY)
 router.get('/admin/all-transactions', getAllTransactions);

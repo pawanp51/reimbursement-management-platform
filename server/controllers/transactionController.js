@@ -445,8 +445,19 @@ const approveTransaction = async (req, res) => {
       },
     });
 
-    // Special case: If CTO approves, auto-approve entire transaction
+    // Special case: If CTO approves, auto-approve entire transaction regardless of percentage
     if (approver.role === 'CTO') {
+      // Mark CTO approval as APPROVED
+      await prisma.transactionApproval.update({
+        where: { id: approval.id },
+        data: {
+          status: 'APPROVED',
+          approvalDate: new Date(),
+          comments: comments || 'Approved by CTO - auto-approved entire transaction',
+        },
+      });
+
+      // Immediately approve the entire transaction
       await prisma.transaction.update({
         where: { id: transactionId },
         data: {
@@ -456,7 +467,7 @@ const approveTransaction = async (req, res) => {
         },
       });
 
-      // Mark all other approvals as auto-approved
+      // Mark all other pending approvals as auto-approved
       await prisma.transactionApproval.updateMany({
         where: {
           transactionId,
@@ -700,7 +711,7 @@ const getPendingApprovalsForApprover = async (req, res) => {
   try {
     const approverId = req.user.userId;
 
-    // Get all pending approvals for this approver
+    // Get all pending approvals for this approver on WAITING_APPROVAL transactions
     const pendingApprovals = await prisma.transactionApproval.findMany({
       where: {
         approverId,
@@ -870,6 +881,115 @@ const getAllTransactions = async (req, res) => {
   }
 };
 
+// ==================== GET USER TRANSACTION HISTORY ====================
+const getUserTransactionHistory = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+
+    // Get all transactions the user has interacted with:
+    // 1. Transactions they created
+    // 2. Transactions they are an approver for
+    const createdTransactions = await prisma.transaction.findMany({
+      where: { userId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        },
+        attachments: true,
+        approvals: {
+          include: {
+            approver: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+              },
+            },
+          },
+          orderBy: { sequenceOrder: 'asc' },
+        },
+      },
+    });
+
+    // Get all transactions where user is an approver
+    const approverTransactions = await prisma.transaction.findMany({
+      where: {
+        approvals: {
+          some: {
+            approverId: userId,
+          },
+        },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+          },
+        },
+        attachments: true,
+        approvals: {
+          include: {
+            approver: {
+              select: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+              },
+            },
+          },
+          orderBy: { sequenceOrder: 'asc' },
+        },
+      },
+    });
+
+    // Merge and deduplicate transactions (a user might have created and approved the same transaction)
+    const mergedMap = new Map();
+    
+    createdTransactions.forEach((t) => {
+      mergedMap.set(t.id, { ...t, role: 'CREATOR' });
+    });
+
+    approverTransactions.forEach((t) => {
+      if (mergedMap.has(t.id)) {
+        // User is both creator and approver
+        const existing = mergedMap.get(t.id);
+        existing.role = 'CREATOR_AND_APPROVER';
+      } else {
+        mergedMap.set(t.id, { ...t, role: 'APPROVER' });
+      }
+    });
+
+    const allTransactions = Array.from(mergedMap.values());
+
+    // Sort by creation date (newest first)
+    allTransactions.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    sendResponse(
+      res,
+      STATUS_CODES.SUCCESS,
+      { transactions: allTransactions, count: allTransactions.length },
+      'User transaction history retrieved successfully'
+    );
+  } catch (error) {
+    console.error('Get user transaction history error:', error);
+    sendError(res, STATUS_CODES.SERVER_ERROR, error.message);
+  }
+};
+
 module.exports = {
   createTransaction,
   getUserTransactions,
@@ -882,4 +1002,5 @@ module.exports = {
   getPendingApprovalsForApprover,
   getApprovalHistory,
   getAllTransactions,
+  getUserTransactionHistory,
 };

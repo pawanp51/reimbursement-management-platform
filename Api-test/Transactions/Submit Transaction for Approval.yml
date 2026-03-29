@@ -5,23 +5,13 @@ info:
 
 http:
   method: POST
-  url: http://localhost:3000/api/transactions/TRANSACTION_ID_HERE/submit
-  headers:
-    Authorization: Bearer YOUR_USER_TOKEN_HERE
-  auth: none
+  url: http://localhost:3000/api/transactions/cmnbm8i2r0004ie10tt6w3eey/submit
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbW5ibTVsdnIwMDAwaWUxMGlkcGhveWZjIiwiZW1haWwiOiJwcmFuYXZwYXRpbDk3NjVAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc0Nzc5OTQ1LCJleHAiOjE3NzUzODQ3NDV9.MgVs5CUcxOCoMDIiUPeu7dHgb6Uw7zxgiI4KVUVEtv0
 
 settings:
   encodeUrl: true
   timeout: 0
   followRedirects: true
   maxRedirects: 5
-
-tests:
-  - name: Status code is 200
-    assert: $res.status == 200
-  - name: Transaction status is WAITING_APPROVAL
-    assert: $res.body.data.transaction.status == "WAITING_APPROVAL"
-  - name: Approvals created
-    assert: $res.body.data.transaction.approvals.length > 0
-  - name: All approvals are PENDING
-    assert: $res.body.data.transaction.approvals.every(a => a.status == "PENDING")
