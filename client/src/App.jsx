@@ -7,14 +7,13 @@ import './App.css';
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 text-gray-900">
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Routes>
-      </div>
+      <Routes>
+        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/manager" element={<AdminDashboard />} />
+        <Route path="/admin" element={<Navigate to="/manager" replace />} />
+      </Routes>
     </Router>
   );
 }
