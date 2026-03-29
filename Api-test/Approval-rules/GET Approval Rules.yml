@@ -1,0 +1,23 @@
+info:
+  name: GET Approval Rules
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:3000/api/approval-rules/user/cmnbj784v0000zzi9g0do43qf
+  headers:
+    - name: token
+      value: ""
+  body:
+    type: json
+    data: ""
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbW5iaDU1ZzgwMDAycGl0bHRxbHM1aTh0IiwiZW1haWwiOiJwYXdhbnJwNTFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc0NzczNTkxLCJleHAiOjE3NzUzNzgzOTF9.XXL7ieZLIec7X2irtzftuARm4cimO6a6YEhVycG3blk
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

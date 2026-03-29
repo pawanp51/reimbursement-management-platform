@@ -1,0 +1,30 @@
+info:
+  name: Delete Approval Rules
+  type: http
+  seq: 4
+
+http:
+  method: PUT
+  url: http://localhost:3000/api/approval-rules/cmnbjgxa1000cfhum7pxj94c8
+  headers:
+    - name: token
+      value: ""
+  body:
+    type: json
+    data: |
+      {
+        "minimalApprovalPercentage":30,
+        "isApproversSequence":true,
+        "description":"test description",
+        "isManagerApprover":true,
+        "approversList":["cmnbjcepk0002fhum5q5klhs8","cmnbjg9lx000afhumrps58hcl"]
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbW5iaDU1ZzgwMDAycGl0bHRxbHM1aTh0IiwiZW1haWwiOiJwYXdhbnJwNTFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc0NzczNTkxLCJleHAiOjE3NzUzNzgzOTF9.XXL7ieZLIec7X2irtzftuARm4cimO6a6YEhVycG3blk
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

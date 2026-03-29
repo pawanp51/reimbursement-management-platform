@@ -1,0 +1,39 @@
+info:
+  name: Approval Rules create
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:3000/api/approval-rules
+  headers:
+    - name: token
+      value: ""
+  body:
+    type: json
+    data: |-
+      {
+        "minimalApprovalPercentage":20,
+        "isApproversSequence":true,
+        "userId":"cmnbj784v0000zzi9g0do43qf",
+        "description":"test description",
+        "isManagerApprover":true,
+        "approversList":["cmnbjcepk0002fhum5q5klhs8","cmnbjg9lx000afhumrps58hcl"]
+      //   email, name, role, managerId, password 
+      }
+
+      //    userId,
+      //       description,
+      //       isManagerApprover,
+      //       approversList,
+      //       isApproversSequence,
+      //       minimalApprovalPercentage,
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbW5iaDU1ZzgwMDAycGl0bHRxbHM1aTh0IiwiZW1haWwiOiJwYXdhbnJwNTFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc0NzczNTkxLCJleHAiOjE3NzUzNzgzOTF9.XXL7ieZLIec7X2irtzftuARm4cimO6a6YEhVycG3blk
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

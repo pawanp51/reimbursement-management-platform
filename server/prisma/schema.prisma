@@ -12,42 +12,84 @@ datasource db {
 
 // User model
 model User {
-  id        String     @id @default(cuid())
-  email     String     @unique
+  id        String  @id @default(cuid())
+  email     String  @unique
   password  String
   firstName String?
   lastName  String?
-  role      Role       @default(EMPLOYEE)
-  
+  role      Role    @default(EMPLOYEE)
+
   // Manager-Employee relationship (self-relation)
-  managerId String?                    // Foreign key to manager
-  manager   User?      @relation("ManagerToEmployee", fields: [managerId], references: [id], onDelete: SetNull)
-  
+  managerId String? // Foreign key to manager
+  manager   User?   @relation("ManagerToEmployee", fields: [managerId], references: [id], onDelete: SetNull)
+  employees User[]  @relation("ManagerToEmployee")
+
+  // Approval Rules
+  approvalRules   ApprovalRule[]
+  approverInRules ApprovalRuleApprover[]
+
   // Relations
   otps OTP[]
-  
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@index([managerId])
 }
 
 // OTP model for password reset
 model OTP {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   code      String
   email     String
   expiresAt DateTime
-  used      Boolean    @default(false)
-  
+  used      Boolean  @default(false)
+
   // Relations
-  userId    String
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime   @default(now())
-  
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
   @@index([email])
   @@index([userId])
+}
+
+// Approval Rule model
+model ApprovalRule {
+  id                        String  @id @default(cuid())
+  description               String
+  isManagerApprover         Boolean @default(false)
+  isApproversSequence       Boolean @default(false) // If true, approvers must approve in order
+  minimalApprovalPercentage Int     @default(50) // Percentage of approvers needed
+
+  // Relations
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Approvers list
+  approvers ApprovalRuleApprover[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Junction table for Approval Rule Approvers (many-to-many)
+model ApprovalRuleApprover {
+  id             String @id @default(cuid())
+  approvalRuleId String
+  approverId     String
+  sequenceOrder  Int? // Order if isApproversSequence is true
+
+  // Relations
+  approvalRule ApprovalRule @relation(fields: [approvalRuleId], references: [id], onDelete: Cascade)
+  approver     User         @relation(fields: [approverId], references: [id], onDelete: Cascade)
+
+  @@unique([approvalRuleId, approverId])
+  @@index([approvalRuleId])
+  @@index([approverId])
 }
 
 // Enums
