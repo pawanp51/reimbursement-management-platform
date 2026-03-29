@@ -32,4 +32,6 @@ export const authAPI = {
   verifyOTP: (email, otp) => fetchAPI('/api/auth/verify-otp', { method: 'POST', body: JSON.stringify({ email, otp }) }),
   resetPassword: (resetToken, newPassword) => fetchAPI('/api/auth/reset-password', { method: 'POST', body: JSON.stringify({ resetToken, newPassword }) }),
   getCurrentUser: () => fetchAPI('/api/auth/me', { method: 'GET' }),
+  getUsers: () => fetchAPI('/api/users', { method: 'GET' }),
+  addUser: (userData) => fetchAPI('/api/users/add-user', { method: 'POST', body: JSON.stringify(userData) }),
 };
