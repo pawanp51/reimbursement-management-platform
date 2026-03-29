@@ -325,7 +325,6 @@ export default function ExpenseForm() {
                     </div>
                   </div>
 
-
                   <div><StatusPill status={a.status} /></div>
 
 
