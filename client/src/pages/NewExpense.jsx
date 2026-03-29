@@ -17,7 +17,7 @@ function useWindowWidth() {
 
 
 const Avatar = ({ name, size = 30 }) => {
-  const palette = { Sarah: "#6366f1", John: "#f59e0b", Andrew: "#10b981" };
+  const palette = { Anushka: "#6366f1", John: "#f59e0b", Andrew: "#10b981" };
   const bg = palette[name] || "#94a3b8";
   return (
     <div style={{
@@ -112,7 +112,7 @@ export default function ExpenseForm() {
   const s = k => e => setForm(p => ({ ...p, [k]: e.target.value }));
 
   const approvers = [
-    { name: "Sarah",  role: "Manager",  status: "Approved", time: "12:44 PM, 4th Oct, 2025" },
+    { name: "Anushka",  role: "Manager",  status: "Approved", time: "12:44 PM, 4th Oct, 2025" },
     { name: "John",   role: "Finance",  status: "Pending",  time: "" },
     { name: "Andrew", role: "Director", status: "Pending",  time: "" },
   ];
@@ -202,7 +202,7 @@ export default function ExpenseForm() {
 
 
           <div style={{ display: "grid", gridTemplateColumns: col2, gap: isMobile ? 12 : 18, marginBottom: isMobile ? 12 : 16 }}>
-            <FInput label="Description" placeholder="Enter description" value={form.desc1} onChange={s("desc1")} disabled={submitted} />
+            <FInput label="Title" placeholder="Enter Expense Title" value={form.desc1} onChange={s("desc1")} disabled={submitted} />
             <div style={{ display: "flex", flexDirection: "column", gap: 5, opacity: submitted ? .55 : 1 }}>
               <label style={{ fontSize: 12.5, fontWeight: 600, color: "#64748b", letterSpacing: .15 }}>Expense Date</label>
               <div style={{ position: "relative" }}>

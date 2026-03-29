@@ -12,9 +12,9 @@ function useWindowWidth() {
 }
 
 const EXPENSES = [
-  { id: 1, employee: "Sarah", gender: "female", desc: "Restaurant bill", date: "4th Oct, 2025", category: "Food",   paidBy: "Sarah", remarks: "—", amount: "₹5,000", status: "Draft" },
-  { id: 2, employee: "Sarah", gender: "female", desc: "Restaurant bill", date: "4th Oct, 2025", category: "Food",   paidBy: "Sarah", remarks: "—", amount: "₹5,467", status: "Submitted" },
-  { id: 3, employee: "Sarah", gender: "male",   desc: "Taxi fare",       date: "2nd Oct, 2025", category: "Travel", paidBy: "Sarah", remarks: "—", amount: "₹500",   status: "Approved" },
+  { id: 1, employee: "Anushka", gender: "female", desc: "Restaurant bill", date: "4th Oct, 2025", category: "Food",   paidBy: "Anushka", remarks: "—", amount: "₹5,000", status: "Draft" },
+  { id: 2, employee: "Anushka", gender: "female", desc: "Restaurant bill", date: "4th Oct, 2025", category: "Food",   paidBy: "Anushka", remarks: "—", amount: "₹5,467", status: "Submitted" },
+  { id: 3, employee: "Anushka", gender: "male",   desc: "Taxi fare",       date: "2nd Oct, 2025", category: "Travel", paidBy: "Anushka", remarks: "—", amount: "₹500",   status: "Approved" },
 ];
 
 const SUMMARY = [
@@ -26,7 +26,7 @@ const SUMMARY = [
 
 const Av = ({ name, gender, size = 32 }) => {
 
-  const seed = gender === "female" ? "Sarah-female" : "Sarah-male";
+  const seed = gender === "female" ? "Anushka-female" : "Anushka-male";
 
   const femaleUrl = "https://i.pravatar.cc/60?img=47";
   const maleUrl   = "https://i.pravatar.cc/60?img=68";
@@ -236,14 +236,14 @@ export default function ExpenseDashboard() {
             flexShrink: 0,
           }}>
             <span style={{ fontSize: 13.5, fontWeight: 600, color: "#111827", letterSpacing: "-0.01em" }}>
-              {isMobile ? "Legal" : "Legal Okapi"}
+              {isMobile ? "Legal" : "Prasad Mahankal"}
             </span>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
               <path d="M3 5l4 4 4-4" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
             <img
               src="https://i.pravatar.cc/60?img=68"
-              alt="Legal Okapi"
+              alt="Prasad Mahankal"
               style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", display: "block" }}
             />
           </div>
