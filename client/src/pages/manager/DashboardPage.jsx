@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Filter, Search, XCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import ApprovalTable from '../../components/dashboard/ApprovalTable';
 import ThemeToggle from '../../components/dashboard/ThemeToggle';
@@ -15,54 +14,10 @@ const PAGE_THEMES = {
 };
 
 const mockApprovals = [
-  {
-    id: 'APR-101',
-    subject: 'Team lunch reimbursement',
-    owner: 'Sarah',
-    category: 'Food',
-    status: 'APPROVED',
-    amountInr: 567,
-    convertedAmount: 6.81,
-    convertedCurrency: 'USD',
-    avatar: '',
-    locked: true,
-  },
-  {
-    id: 'APR-102',
-    subject: 'Client meeting cab expense',
-    owner: 'Marcus',
-    category: 'Travel',
-    status: 'PENDING',
-    amountInr: 1420,
-    convertedAmount: 17.05,
-    convertedCurrency: 'USD',
-    avatar: '',
-    locked: false,
-  },
-  {
-    id: 'APR-103',
-    subject: 'Cloud software renewal',
-    owner: 'Ava',
-    category: 'Software',
-    status: 'PENDING',
-    amountInr: 8620,
-    convertedAmount: 103.46,
-    convertedCurrency: 'USD',
-    avatar: '',
-    locked: false,
-  },
-  {
-    id: 'APR-104',
-    subject: 'Quarterly compliance workshop',
-    owner: 'Nina',
-    category: 'Training',
-    status: 'REJECTED',
-    amountInr: 2500,
-    convertedAmount: 30.01,
-    convertedCurrency: 'USD',
-    avatar: '',
-    locked: true,
-  },
+  { id: 'APR-101', subject: 'Team lunch reimbursement', owner: 'Sarah', category: 'Food', status: 'APPROVED', amountInr: 567, convertedAmount: 6.81, convertedCurrency: 'USD', avatar: '', locked: true },
+  { id: 'APR-102', subject: 'Client meeting cab expense', owner: 'Marcus', category: 'Travel', status: 'PENDING', amountInr: 1420, convertedAmount: 17.05, convertedCurrency: 'USD', avatar: '', locked: false },
+  { id: 'APR-103', subject: 'Cloud software renewal', owner: 'Ava', category: 'Software', status: 'PENDING', amountInr: 8620, convertedAmount: 103.46, convertedCurrency: 'USD', avatar: '', locked: false },
+  { id: 'APR-104', subject: 'Quarterly compliance workshop', owner: 'Nina', category: 'Training', status: 'REJECTED', amountInr: 2500, convertedAmount: 30.01, convertedCurrency: 'USD', avatar: '', locked: true },
 ];
 
 export default function DashboardPage() {
@@ -91,50 +46,31 @@ export default function DashboardPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  const categories = useMemo(() => {
-    const values = [...new Set(approvals.map((item) => item.category))];
-    return ['ALL', ...values];
-  }, [approvals]);
+  const categories = useMemo(() => ['ALL', ...new Set(approvals.map((item) => item.category))], [approvals]);
 
-  const filteredApprovals = useMemo(() => {
-    return approvals.filter((approval) => {
-      const matchesSearch =
-        approval.subject.toLowerCase().includes(searchValue.toLowerCase()) ||
-        approval.owner.toLowerCase().includes(searchValue.toLowerCase());
-      const matchesStatus = statusFilter === 'ALL' || approval.status === statusFilter;
-      const matchesCategory = categoryFilter === 'ALL' || approval.category === categoryFilter;
-      return matchesSearch && matchesStatus && matchesCategory;
-    });
-  }, [approvals, categoryFilter, searchValue, statusFilter]);
-
-  const pendingCount = useMemo(
-    () => approvals.filter((approval) => approval.status === 'PENDING').length,
-    [approvals],
+  const filteredApprovals = useMemo(
+    () =>
+      approvals.filter((approval) => {
+        const matchesSearch =
+          approval.subject.toLowerCase().includes(searchValue.toLowerCase()) ||
+          approval.owner.toLowerCase().includes(searchValue.toLowerCase());
+        const matchesStatus = statusFilter === 'ALL' || approval.status === statusFilter;
+        const matchesCategory = categoryFilter === 'ALL' || approval.category === categoryFilter;
+        return matchesSearch && matchesStatus && matchesCategory;
+      }),
+    [approvals, categoryFilter, searchValue, statusFilter]
   );
 
+  const pendingCount = useMemo(() => approvals.filter((approval) => approval.status === 'PENDING').length, [approvals]);
+
   const onDecision = async (requestId, decision) => {
-    if (loadingRequestId) {
-      return;
-    }
+    if (loadingRequestId) return;
 
     setLoadingRequestId(requestId);
-
-    await new Promise((resolve) => {
-      setTimeout(resolve, 1400);
-    });
+    await new Promise((resolve) => setTimeout(resolve, 1400));
 
     setApprovals((current) =>
-      current.map((approval) => {
-        if (approval.id !== requestId) {
-          return approval;
-        }
-
-        return {
-          ...approval,
-          status: decision,
-          locked: true,
-        };
-      }),
+      current.map((approval) => (approval.id === requestId ? { ...approval, status: decision, locked: true } : approval))
     );
 
     if (decision === 'APPROVED') {
@@ -155,24 +91,12 @@ export default function DashboardPage() {
   };
 
   return (
-    <main
-      className={`min-h-screen transition-colors duration-300 ${PAGE_THEMES[theme]}`}
-      aria-label="Manager approval dashboard"
-    >
+    <main className={`min-h-screen transition-colors duration-300 ${PAGE_THEMES[theme]}`} aria-label="Manager approval dashboard">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <motion.div
-          className="absolute -top-24 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-sky-400/30 via-indigo-400/20 to-transparent blur-3xl dark:from-cyan-400/25 dark:via-blue-500/20"
-          animate={{ x: [0, 40, 0], y: [0, -20, 0] }}
-          transition={{ duration: 16, repeat: Infinity, ease: 'easeInOut' }}
-        />
+        <div className="absolute -top-24 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-gradient-to-br from-sky-400/30 via-indigo-400/20 to-transparent blur-3xl dark:from-cyan-400/25 dark:via-blue-500/20" />
       </div>
 
-      <motion.section
-        className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45, ease: 'easeOut' }}
-      >
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <Card className="mb-6 rounded-2xl">
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
@@ -186,10 +110,7 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <ThemeToggle
-              theme={theme}
-              onToggle={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
-            />
+            <ThemeToggle theme={theme} onToggle={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))} />
           </CardHeader>
         </Card>
 
@@ -198,13 +119,7 @@ export default function DashboardPage() {
             <div className="mb-5 grid gap-3 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]">
               <label className="relative block">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  aria-label="Search approval requests"
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  placeholder="Search by subject or owner"
-                  className="pl-9"
-                />
+                <Input aria-label="Search approval requests" value={searchValue} onChange={(event) => setSearchValue(event.target.value)} placeholder="Search by subject or owner" className="pl-9" />
               </label>
 
               <label className="relative block">
@@ -251,15 +166,10 @@ export default function DashboardPage() {
               </Button>
             </div>
 
-            <ApprovalTable
-              requests={filteredApprovals}
-              loadingRequestId={loadingRequestId}
-              onDecision={onDecision}
-              isBootLoading={isBootLoading}
-            />
+            <ApprovalTable requests={filteredApprovals} loadingRequestId={loadingRequestId} onDecision={onDecision} isBootLoading={isBootLoading} />
           </CardContent>
         </Card>
-      </motion.section>
+      </section>
     </main>
   );
 }

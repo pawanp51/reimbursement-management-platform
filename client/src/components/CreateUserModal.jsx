@@ -53,10 +53,6 @@ export default function CreateUserModal({ isOpen, onClose, defaultName = '', onU
     }
   };
 
-  const isUserMissing = (username) => {
-    return username.trim() !== '' && !allUsers.includes(username.toLowerCase());
-  };
-
   const generateRandomPassword = () => {
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
     let pwd = "";
