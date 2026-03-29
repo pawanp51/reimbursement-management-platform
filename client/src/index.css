@@ -1,6 +1,22 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 @theme {
   --color-primary: #3b82f6;
   --color-primary-dark: #2563eb;
+}
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", sans-serif;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
