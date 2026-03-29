@@ -41,7 +41,8 @@ export default function Signup() {
       const response = await authAPI.signup({
         firstName: formData.name, // Mapping 'Name' to 'firstName' for backend
         email: formData.email,
-        password: formData.password
+        password: formData.password,
+        country: formData.country
       });
 
       if (response.data?.token) {
