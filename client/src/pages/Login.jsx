@@ -37,12 +37,10 @@ export default function Login() {
       
       if (response.data?.token) {
         localStorage.setItem('token', response.data.token);
-        const role = response.data.user?.role;
         if (role === 'ADMIN') {
           navigate('/admin');
         } else {
-          // If scaling later, route elsewhere
-          navigate('/');
+          navigate('/employee-dashboard');
         }
       }
     } catch (err) {

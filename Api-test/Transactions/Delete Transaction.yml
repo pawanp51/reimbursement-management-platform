@@ -1,0 +1,23 @@
+info:
+  name: Delete Transaction
+  type: http
+  seq: 10
+
+http:
+  method: DELETE
+  url: http://localhost:3000/api/transactions/TRANSACTION_ID_HERE
+  headers:
+    Authorization: Bearer YOUR_USER_TOKEN_HERE
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 200
+    assert: $res.status == 200
+  - name: Response has success message
+    assert: $res.body.message.includes("deleted")

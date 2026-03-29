@@ -1,0 +1,27 @@
+info:
+  name: Get Pending Approvals
+  type: http
+  seq: 8
+
+http:
+  method: GET
+  url: http://localhost:3000/api/transactions/approvals/pending
+  headers:
+    Authorization: Bearer YOUR_APPROVER_TOKEN_HERE
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 200
+    assert: $res.status == 200
+  - name: Response has transactions array
+    assert: Array.isArray($res.body.data.transactions)
+  - name: Response has count
+    assert: typeof $res.body.data.count == "number"
+  - name: All transactions in WAITING_APPROVAL
+    assert: $res.body.data.transactions.every(t => t.status == "WAITING_APPROVAL")

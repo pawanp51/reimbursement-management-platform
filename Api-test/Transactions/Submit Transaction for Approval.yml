@@ -1,0 +1,27 @@
+info:
+  name: Submit Transaction for Approval
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:3000/api/transactions/TRANSACTION_ID_HERE/submit
+  headers:
+    Authorization: Bearer YOUR_USER_TOKEN_HERE
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 200
+    assert: $res.status == 200
+  - name: Transaction status is WAITING_APPROVAL
+    assert: $res.body.data.transaction.status == "WAITING_APPROVAL"
+  - name: Approvals created
+    assert: $res.body.data.transaction.approvals.length > 0
+  - name: All approvals are PENDING
+    assert: $res.body.data.transaction.approvals.every(a => a.status == "PENDING")

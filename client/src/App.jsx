@@ -3,6 +3,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import DashboardPage from './pages/manager/DashboardPage';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
+import ExpenseDashboard from './pages/EmployeeDashboard';
+import ExpenseForm from './pages/NewExpense';
 import './App.css';
 
 function App() {

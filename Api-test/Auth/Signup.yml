@@ -1,0 +1,32 @@
+info:
+  name: Signup
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:3000/api/auth/signup
+  body:
+    type: json
+    data: |-
+      {
+        "email": "newuser@company.com",
+        "password": "SecurePassword@123",
+        "firstName": "Jane",
+        "lastName": "Smith"
+      }
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 201
+    assert: $res.status == 201
+  - name: Token returned
+    assert: $res.body.data.token != null
+  - name: User created as ADMIN
+    assert: $res.body.data.user.role == "ADMIN"

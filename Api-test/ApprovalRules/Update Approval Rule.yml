@@ -1,0 +1,32 @@
+info:
+  name: Update Approval Rule
+  type: http
+  seq: 3
+
+http:
+  method: PUT
+  url: http://localhost:3000/api/approval-rules/RULE_ID_HERE
+  headers:
+    Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+  body:
+    type: json
+    data: |-
+      {
+        "description": "Updated approval rule",
+        "isManagerApprover": false,
+        "isApproversSequence": true,
+        "minimalApprovalPercentage": 75
+      }
+  auth: none
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+
+tests:
+  - name: Status code is 200
+    assert: $res.status == 200
+  - name: Description updated
+    assert: $res.body.data.approvalRule.description == "Updated approval rule"
