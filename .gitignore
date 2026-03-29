@@ -1,3 +1,9 @@
+# Root .gitignore for Reimbursement Management Platform
+
+# Environment variables
+.env
+*.local
+
 # Logs
 logs
 *.log
@@ -7,16 +13,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
-.env
+# Node modules
+node_modules/
+
+# Build artifacts
+dist/
+dist-ssr/
+build/
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
