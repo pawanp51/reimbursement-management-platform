@@ -1,0 +1,31 @@
+info:
+  name: Add User
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: http://localhost:3000/api/users/add-user
+  headers:
+    - name: token
+      value: ""
+  body:
+    type: json
+    data: |-
+      {
+        "email":"test1@gmail.com",
+        "name":"Test Add",
+        "role":"CTO",
+        "managerId":"cmnbh55g80002pitltqls5i8t",
+        "password":"Test@123"
+      //   email, name, role, managerId, password 
+      }
+  auth:
+    type: bearer
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJjbW5iaDU1ZzgwMDAycGl0bHRxbHM1aTh0IiwiZW1haWwiOiJwYXdhbnJwNTFAZ21haWwuY29tIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzc0NzczNTkxLCJleHAiOjE3NzUzNzgzOTF9.XXL7ieZLIec7X2irtzftuARm4cimO6a6YEhVycG3blk
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

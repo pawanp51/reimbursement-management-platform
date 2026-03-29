@@ -22,7 +22,6 @@ model User {
   // Manager-Employee relationship (self-relation)
   managerId String?                    // Foreign key to manager
   manager   User?      @relation("ManagerToEmployee", fields: [managerId], references: [id], onDelete: SetNull)
-  managerTo User[]     @relation("ManagerToEmployee")  // Employees under this manager
   
   // Relations
   otps OTP[]

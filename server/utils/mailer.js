@@ -69,7 +69,40 @@ const sendWelcomeEmail = async (email, firstName) => {
   }
 };
 
+// Send password email
+const sendPasswordEmail = async (email, firstName, password) => {
+  try {
+    const mailOptions = {
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to: email,
+      subject: 'Your Account Credentials - Reimbursement Management Platform',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">Welcome to Reimbursement Management Platform!</h2>
+          <p>Hi ${firstName || 'User'},</p>
+          <p>Your account has been created successfully. Below are your login credentials:</p>
+          <div style="background-color: #f0f0f0; padding: 20px; border-radius: 5px; margin: 20px 0;">
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Password:</strong> ${password}</p>
+          </div>
+          <p style="color: #d9534f;"><strong>⚠️ Security Notice:</strong> Please change your password after your first login.</p>
+          <p>You can log in here: <a href="${process.env.CLIENT_URL}" style="color: #007bff; text-decoration: none;">${process.env.CLIENT_URL}</a></p>
+          <p style="color: #999; font-size: 12px; margin-top: 30px;">If you have any questions, please contact our support team.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Password email sent to ${email}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending password email:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   sendOTPEmail,
   sendWelcomeEmail,
+  sendPasswordEmail,
 };
