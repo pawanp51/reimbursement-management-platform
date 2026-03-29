@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model
+model User {
+  id        String     @id @default(cuid())
+  email     String     @unique
+  password  String
+  firstName String?
+  lastName  String?
+  role      Role       @default(EMPLOYEE)
+  
+  // Manager-Employee relationship (self-relation)
+  managerId String?                    // Foreign key to manager
+  manager   User?      @relation("ManagerToEmployee", fields: [managerId], references: [id], onDelete: SetNull)
+  managerTo User[]     @relation("ManagerToEmployee")  // Employees under this manager
+  
+  // Relations
+  otps OTP[]
+  
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  
+  @@index([managerId])
+}
+
+// OTP model for password reset
+model OTP {
+  id        String     @id @default(cuid())
+  code      String
+  email     String
+  expiresAt DateTime
+  used      Boolean    @default(false)
+  
+  // Relations
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime   @default(now())
+  
+  @@index([email])
+  @@index([userId])
+}
+
+// Enums
+enum Role {
+  EMPLOYEE
+  MANAGER
+  CTO
+  DIRECTOR
+  ADMIN
+}
+
+enum ReimbursementStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PAID
+  CANCELLED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
